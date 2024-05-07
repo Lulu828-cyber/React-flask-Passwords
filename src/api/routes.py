@@ -20,3 +20,58 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+#### USER LOG IN
+
+@api.route("/login", methods=["POST"])
+def login():
+
+    email = request.json.get("email")
+    password = request.json.get("password")
+
+    user = User.query.filter_by(email=email, password=password).first()
+    if not user:
+        return jsonify("Credenciales incorrectas"), 401
+
+    access_token = create_access_token(identity=email)
+
+    response_body = {
+        "msg": "logged",
+        "user": user.serialize(),
+        "token": access_token
+    }
+    print(response_body),
+    return jsonify(response_body), 200
+
+### Sign Up ##
+
+@api.route("/signup", methods=["PORST"])
+def register():
+
+    request_body = request.get_jsn(force=True)
+
+    required_fields -["email", "password"]
+    for field in required_fields:
+        if field not in request_body or not request_body[field]:
+            raise APIException('The field cannot be empty', 400)
+        
+        verify_email = User.query.filter_by(email=request_body).first()
+        if verify_email:
+            raise APIException('An account already exit with this email', 400)
+        
+         user = User(email=request_body["email"], password=request_body["password"])
+
+    db.session.add(user)
+    print(user)
+
+    try:
+        db.session.commit()
+    except:
+        raise APIException('Internal error', 500)
+
+    response_body = {
+        "msg": "Successfull! new user created.",
+        "user": user.serialize()
+    }
+
+    return jsonify(response_body), 200
